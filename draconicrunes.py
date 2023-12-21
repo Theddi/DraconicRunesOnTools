@@ -17,7 +17,8 @@ class RuneScraper():
         self.url = url
         self.driver = self._getDriver(headless)
         self._startWebsite(self.url+"spells.html")
-        self._load_cookies()
+        if os.path.exists("./cookies.pkl"):
+            self._load_cookies()
         self.driver.find_element(By.XPATH, "//button[text()='Reset']").click()
         self.driver.find_element(By.XPATH, "//button[text()='Filter']").click()
         self.typeToTools = {

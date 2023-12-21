@@ -13,9 +13,9 @@ class SetEncoder(json.JSONEncoder):
             return list(obj)
         return json.JSONEncoder.default(self, obj)
     
-#parser = argparse.ArgumentParser(description='Draconic Runes Spell Manager')
-#parser.add_argument('-a', '--automatic', action='store_true', help='Executes with setup file')
-#args = parser.parse_args()
+parser = argparse.ArgumentParser(description='Draconic Runes Spell Manager')
+parser.add_argument('-hide', '--hidden', action='store_true', help='Hide the browser window')
+args = parser.parse_args()
 
 class drGUI():
     def __init__(self, headless=False):
@@ -198,4 +198,7 @@ class drGUI():
                 spell_label.grid(row=idx, column=idy)
                 idy += 1
             self.spells.append(spell_dict)
-gui = drGUI(True)
+if args.hidden:
+    gui = drGUI(True)
+else:
+    gui = drGUI()

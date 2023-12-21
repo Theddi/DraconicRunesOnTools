@@ -160,6 +160,5 @@ cython_debug/
 #.idea/
 
 # User Files
-runes.json
 setup.json
 cookies.pkl

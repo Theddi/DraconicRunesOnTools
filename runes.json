@@ -1,0 +1,67 @@
+{
+	"area": {
+		"Acies": ["Line"],
+		"Globus": ["Sphere", "Circle"],
+		"Incrementum": ["Cone"],
+		"Quadratum": ["Cube"],
+		"Statua": ["Cylinder"]
+	},
+	"component": {
+		"Concentio": "Somatic",
+		"Corporis": "Material",
+		"Orotorem": "Verbal"
+	},
+	"damage": {
+		"Acidum": "Acid",
+		"Cerebrum": "Psychic",
+		"Frigus": "Cold",
+		"Ignis": "Fire",
+		"Impetu": "Force",
+		"Impulsum": "Bludgeoning",
+		"Lux": "Radiant",
+		"Morbus": "Poison",
+		"Putredine": "Necrotic",
+		"Scopum": "Slashing",
+		"Tempestas": "Lightning",
+		"Tumultum": "Thunder",
+		"Vulnus": "Piercing"
+	},
+	"duration": {
+		"Dubito": ["1 Round", "1 Round"],
+		"Mensis": ["24+ Hours", "24+ Hours"],
+		"Occasus": ["1 Hour", "8 Hours"],
+		"Praxis": ["Permanent", "Permanent"],
+		"Proelium": ["1 Minute", "10 Minutes"],
+		"Solis": ["8 Hours", "24+ Hours"],
+		"Subita": ["Instant", "Instant"]
+	},
+	"master": {
+		"Unus": "1st level",
+		"Duo": "2nd level",
+		"Tertious": "3rd level",
+		"Quadro": "4th level",
+		"Quintus": "5th level",
+		"Sextus": "6th level",
+		"Septem": "7th level",
+		"Octum": "8th level",
+		"Novem": "9th level"
+	},
+	"range": {
+		"Gloria": "120ft-500ft",
+		"Iuxta": "60ft-90ft",
+		"Proxime": "5ft-30ft",
+		"Sui": "Self",
+		"Tactus": "Touch",
+		"Terra": "1+ Mile"
+	},
+	"school": {
+		"Alchimia": "Transmutation",
+		"Anima": "Necromancy",
+		"Displodo": "Evocation",
+		"Laporem": "Enchantment",
+		"Pario": "Conjuration",
+		"Prudentia": "Divination",
+		"Tutela": "Abjuration",
+		"Umbra": "Illusion"
+	}
+}
