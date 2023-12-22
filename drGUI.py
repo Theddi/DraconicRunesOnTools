@@ -85,6 +85,7 @@ class drGUI():
         self.spells_frame = Frame(mainframe, relief="groove", borderwidth=2, height=500)
         self.spells_frame.grid(row=3, column=0, columnspan=self.maxCol+1)
 
+        #TODO make scrollbar work (fix height)
         scrollbar = Scrollbar(self.spells_frame)
         scrollbar.pack(side=RIGHT, fill=Y)
         self.spellcontainer = Canvas(self.spells_frame, yscrollcommand=scrollbar.set)
