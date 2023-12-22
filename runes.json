@@ -7,9 +7,9 @@
 		"Statua": ["Cylinder"]
 	},
 	"component": {
-		"Concentio": "Somatic",
-		"Corporis": "Material",
-		"Orotorem": "Verbal"
+		"Concentio": "S",
+		"Corporis": "M",
+		"Orotorem": "V"
 	},
 	"damage": {
 		"Acidum": "Acid",
@@ -36,15 +36,15 @@
 		"Subita": ["Instant", "Instant"]
 	},
 	"master": {
-		"Unus": "1st level",
-		"Duo": "2nd level",
-		"Tertious": "3rd level",
-		"Quadro": "4th level",
-		"Quintus": "5th level",
-		"Sextus": "6th level",
-		"Septem": "7th level",
-		"Octum": "8th level",
-		"Novem": "9th level"
+		"Unus": "1st",
+		"Duo": "2nd",
+		"Tertious": "3rd",
+		"Quadro": "4th",
+		"Quintus": "5th",
+		"Sextus": "6th",
+		"Septem": "7th",
+		"Octum": "8th",
+		"Novem": "9th"
 	},
 	"range": {
 		"Gloria": "120ft-500ft",

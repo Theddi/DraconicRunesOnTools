@@ -44,7 +44,7 @@ class drGUI():
         self.classes = self._getClasses()
         self.class_label = Label(self.filter_frame, text="Class:")
         self.class_label.grid(row=0, column=1, sticky="n")
-        self.class_selector = Combobox(self.filter_frame, values=self.classes)
+        self.class_selector = Combobox(self.filter_frame, values=self.classes, state="readonly")
         self.class_selector.grid(row=0, column=2, sticky="n")
         self.class_selector.bind("<<ComboboxSelected>>", self._updateClass)
 
@@ -70,14 +70,15 @@ class drGUI():
 
         self.spellItems = []
         self.spellList = self._loadSpells()
-        self.curList = TableModel.getSampleData()
+        self.curList = None
         self._getSpells(False)
 
         self.spells_frame = Frame(self.window, relief="groove", borderwidth=2)
         self.spells_frame.pack(side=BOTTOM, anchor="s", fill=BOTH, expand=True)
 
+        self.spellsort = 1
         self.spellcontainer = Table(self.spells_frame, dataframe=self.curList, showstatusbar=True)
-        self.spellcontainer.sortTable(1)
+        self.spellcontainer.sortTable(self.spellsort)
         self.spellcontainer.show()
         self.spellcontainer.hideRowHeader()
 
@@ -117,12 +118,83 @@ class drGUI():
         return spells
 
     def _getSpells(self, redraw=True):
+        def invalid(option):
+            print(f"Option {option} has to be set")
+            self.curList = None
+            if redraw:
+                self.spellcontainer.updateModel(TableModel(self.curList))
+                self.spellcontainer.redraw()
+
+        '''"class": "",
+                "area": set(),
+                "damage": set(),
+                "duration": [],'''
         spells = self.spellList
-        spells = spells[spells["Classes"].str.contains(self._getSelectedClass(), case=False, na=False)]
+        # Filter required runes and class
+        if len(self.setup["class"]):
+            spells = spells[spells["Classes"].str.contains(self.setup["class"], case=False, na=False)]
+        else:
+            invalid("class")
+            return
+
+        if len(self.setup["master"]):
+            spells = spells[spells["Level"].isin(self.setup["master"])]
+        else:
+            invalid("master")
+            return
+
+        if len(self.setup["school"]):
+            spells = spells[spells["School"].isin(self.setup["school"])]
+        else:
+            invalid("school")
+            return
         
-        spells = spells[["Name", "Level", "School", "Casting Time", "Range", "Components", "Duration", "Source"]]
+        # Filter additional runes
+        spells["RuneCount"] = 0    
+        def component_check(row):
+            count = 0
+            for rune in self.setup["component"]:
+                if rune in row["Components"]:
+                    count += 1
+            return count
+        if len(self.setup["component"]):
+            spells["RuneCount"] += spells.apply(component_check, axis=1)
+
+        def range_check(row):
+            if "Self" == row:
+                if "Self" in self.setup["range"]:
+                    return 1
+                else:
+                    return 0
+            if "Touch" == row:
+                if "Touch" in self.setup["range"]:
+                    return 1
+                else:
+                    return 0
+            elif "mile" in row or "Unlimited" in row: 
+                if self.runes["range"]["Terra"] in self.setup["range"]:
+                    return 1
+                else:
+                    return 0
+            else:
+                num = re.findall(r'\d+', row)
+                if "(" in row:
+                    print(num)
+                for rang in self.setup["range"]:
+                    if "Mile" in rang or "Self" in rang or "Touch" in rang:
+                        continue
+                    selRange = re.findall(r'\d+', rang)
+                    if len(num) and int(num[0]) in range(int(selRange[0]), int(selRange[1])+1):
+                        return 1
+            return 0
+        if len(self.setup["range"]):
+            spells["RuneCount"] += spells["Range"].apply(range_check)
+        
+        spells = spells[["Name", "Level", "School", "Casting Time", "Range", "Components", "Duration", "Source", "RuneCount"]]
         self.curList = spells
         if redraw:
+            self.spellcontainer.updateModel(TableModel(self.curList))
+            self.spellcontainer.sortTable(self.spellsort)
             self.spellcontainer.redraw()
 
     def _updateSetup(self):
@@ -130,32 +202,25 @@ class drGUI():
             data = json.load(file)
             data = {k: set(v) if k != "class" and k != "duration" else v for k, v in data.items()}
             
-            selClass = data["class"]
-            self.class_selector.set(selClass)
-            self._updateClass(selClass)
             for rune_type, values in data.items():
                 if rune_type == "class":
+                    self.class_selector.set(values)
+                    self.setup["class"] = values
                     continue
                 for rune, val in self.runes[rune_type].items():
                     if type(val) == list:
                         for v in val:
                             if v in values:
                                 self.rune_values[rune].set(True)
-                                #self.RuneScraper.updateElement(rune_type, v, True)
-                                
                     else:
                         if val in values:
                             self.rune_values[rune].set(True)
-                            #self.RuneScraper.updateElement(rune_type, val, True)
                             
             self.setup = data
 
     def _updateClass(self, event):
-        #self.RuneScraper.updateElement("class", self.class_selector.get(), True)
-        if len(self.setup["class"]):
-            print("Here is nothing")
-            #self.RuneScraper.updateElement("class", self.setup["class"], False)
         self.setup["class"] = self.class_selector.get()
+        self._getSpells(True)
         
     def _getSelectedClass(self):
         return self.class_selector.get()
@@ -179,6 +244,5 @@ class drGUI():
                 case _:
                     self.setup[rune_type].remove(self.runes[rune_type][rune])
             print("-"+rune)
-        self._getSpells()
-        print(self.setup)
+        self._getSpells(True)
 gui = drGUI()
