@@ -27,13 +27,13 @@
 		"Vulnus": "Piercing"
 	},
 	"duration": {
-		"Dubito": ["1 Round", "1 Round"],
-		"Mensis": ["24+ Hours", "24+ Hours"],
+		"Dubito": ["Round", " Round"],
+		"Mensis": ["2 Days", "30 Days"],
 		"Occasus": ["1 Hour", "8 Hours"],
-		"Praxis": ["Permanent", "Permanent"],
+		"Praxis": ["Until dispelled", "triggered"],
 		"Proelium": ["1 Minute", "10 Minutes"],
-		"Solis": ["8 Hours", "24+ Hours"],
-		"Subita": ["Instant", "Instant"]
+		"Solis": ["9 Hours", "24 Hours"],
+		"Subita": ["Instantaneous", "Instantaneous"]
 	},
 	"master": {
 		"Unus": "1st",

@@ -76,10 +76,25 @@ class drGUI():
         self.spells_frame = Frame(self.window, relief="groove", borderwidth=2)
         self.spells_frame.pack(side=BOTTOM, anchor="s", fill=BOTH, expand=True)
 
-        self.spellsort = 1
-        self.spellcontainer = Table(self.spells_frame, dataframe=self.curList, showstatusbar=True)
-        self.spellcontainer.sortTable(self.spellsort)
+        def on_cell_click(event, table):
+            row = table.getSelectedRow()
+            col = table.getSelectedColumn()
+            if col == 0:
+                url = table.model.df.iloc[row, 8]
+                webbrowser.open_new(url)
+
+        class ClickableTable(Table):
+            def handle_left_click(self, event):
+                super().handle_left_click(event)
+                self.cell_click_function(event)
+
+        self.spellsort = 8
+        self.spellcontainer = ClickableTable(self.spells_frame, dataframe=self.curList, showstatusbar=True)
+        if self.curList is not None:
+            self.spellcontainer.sortTable(self.spellsort, False)
         self.spellcontainer.show()
+        self.spellcontainer.cell_click_function = lambda event: on_cell_click(event, self.spellcontainer)
+        self.spellcontainer.editable = False
         self.spellcontainer.hideRowHeader()
 
         self.window.mainloop()
@@ -96,7 +111,7 @@ class drGUI():
         if self.runes_frame.winfo_ismapped():
             self.runes_frame.grid_forget()
         else:
-            self.runes_frame.grid(row=2, column=0, columnspan=self.maxCol+1)
+            self.runes_frame.grid(row=1, column=0, columnspan=4)
 
     def _getClasses(self):
         with open('classes.csv', newline='\n', encoding="utf8") as csvfile:
@@ -111,10 +126,18 @@ class drGUI():
 
     def _loadSpells(self):
         spells = pd.read_csv('spells.csv')
-
+        spells["School"] = spells["School"].apply(lambda x: x.split(" ")[0])
         spells["Components"] = spells["Components"].apply(self.remove_parentheses)
         spells = spells[~spells["Level"].str.contains("cantrip", case=False, na=False)]
-        spells["Link"] = spells["Name"]+"_"+spells["Source"]
+        
+        def update_link(row):
+            if row["Source"] != "HGtMH":
+                return "https://5e.tools/spells.html#" + row["Name"] + "_" + row["Source"]
+            else:
+                return "https://5e.tools/spells.html#" + row["Name"] + "_" + "helianasguidetomonsterhunting"
+
+        # Anwendung der Funktion auf die Daten
+        spells["Link"] = spells.apply(lambda row: update_link(row), axis=1)
         return spells
 
     def _getSpells(self, redraw=True):
@@ -125,10 +148,6 @@ class drGUI():
                 self.spellcontainer.updateModel(TableModel(self.curList))
                 self.spellcontainer.redraw()
 
-        '''"class": "",
-                "area": set(),
-                "damage": set(),
-                "duration": [],'''
         spells = self.spellList
         # Filter required runes and class
         if len(self.setup["class"]):
@@ -190,12 +209,72 @@ class drGUI():
         if len(self.setup["range"]):
             spells["RuneCount"] += spells["Range"].apply(range_check)
         
-        spells = spells[["Name", "Level", "School", "Casting Time", "Range", "Components", "Duration", "Source", "RuneCount"]]
+        def duration_check(row):
+            for dur in self.setup["duration"]:
+                if dur == self.runes["duration"]["Dubito"]:
+                    if "round" in row:
+                        if int(re.findall(r'\d+', row)[0]) < 10: 
+                            return 1
+                elif dur == self.runes["duration"]["Praxis"]:
+                    if dur[0] in row or dur[1] in row: return 1
+                elif dur == self.runes["duration"]["Subita"]:
+                    if "Instantaneous" in row: return 1
+                elif dur == self.runes["duration"]["Mensis"]:
+                    if "day" in row:
+                        num = int(re.findall(r'\d+', row)[0])
+                        less = int(re.findall(r'\d+', dur[0])[0])
+                        more = int(re.findall(r'\d+', dur[1])[0])
+                        if num >= less and num <= more: return 1
+                elif dur == self.runes["duration"]["Occasus"]:
+                    if "hour" in row:
+                        num = int(re.findall(r'\d+', row)[0])
+                        less = int(re.findall(r'\d+', dur[0])[0])
+                        more = int(re.findall(r'\d+', dur[1])[0])
+                        if num >= less and num <= more: return 1
+                elif dur == self.runes["duration"]["Proelium"]:
+                    if "minute" in row:
+                        num = int(re.findall(r'\d+', row)[0])
+                        less = int(re.findall(r'\d+', dur[0])[0])
+                        more = int(re.findall(r'\d+', dur[1])[0])
+                        if num >= less and num <= more: return 1
+                elif dur == self.runes["duration"]["Solis"]:
+                    if "hour" in row:
+                        num = int(re.findall(r'\d+', row)[0])
+                        less = int(re.findall(r'\d+', dur[0])[0])
+                        more = int(re.findall(r'\d+', dur[1])[0])
+                        if num >= less and num <= more: return 1
+            return 0
+        if len(self.setup["duration"]):
+            spells["RuneCount"] += spells["Duration"].apply(duration_check)
+
+        def damage_check(row):
+            for dmg in self.setup["damage"]:
+                test = re.findall(r'\d '+ dmg.lower() + " damage", row)
+                if len(test):
+                    return 1
+            return 0
+        if len(self.setup["damage"]):
+            spells["RuneCount"] += spells["Text"].apply(damage_check)
+
+        def area_check(row):
+            for a in self.setup["area"]:
+                print(a)
+                test = re.findall(r''+a.lower(), row)
+                if len(test):
+                    return 1
+            return 0
+        if len(self.setup["area"]):
+            spells["RuneCount"] += spells["Text"].apply(area_check)
+        
+        spells = spells[spells["RuneCount"] >= spells["Level"].apply(lambda x: float(re.findall(r'\d+', x)[0])/3)]
+        spells = spells[["Name", "Level", "School", "Casting Time", "Range", "Components", "Duration", "Source", "Link"]]
         self.curList = spells
+        print(self.setup)
         if redraw:
             self.spellcontainer.updateModel(TableModel(self.curList))
-            self.spellcontainer.sortTable(self.spellsort)
+            self.spellcontainer.sortTable(self.spellsort, False)
             self.spellcontainer.redraw()
+            self.spellcontainer.autoResizeColumns()
 
     def _updateSetup(self):
         with open('setup.json') as file:
