@@ -90,8 +90,8 @@ class drGUI():
 
         self.spellsort = 8
         self.spellcontainer = ClickableTable(self.spells_frame, dataframe=self.curList, showstatusbar=True)
-        if self.curList is not None:
-            self.spellcontainer.sortTable(self.spellsort, False)
+        #if self.curList is not None:
+        #    self.spellcontainer.sortTable(self.spellsort, False)
         self.spellcontainer.show()
         self.spellcontainer.cell_click_function = lambda event: on_cell_click(event, self.spellcontainer)
         self.spellcontainer.editable = False
@@ -268,11 +268,13 @@ class drGUI():
         
         spells = spells[spells["RuneCount"] >= spells["Level"].apply(lambda x: float(re.findall(r'\d+', x)[0])/3)]
         spells = spells[["Name", "Level", "School", "Casting Time", "Range", "Components", "Duration", "Source", "Link"]]
+        if spells is not None:
+            spells.sort_values(by=["Level", "Name"], inplace=True)
         self.curList = spells
+        
         print(self.setup)
         if redraw:
             self.spellcontainer.updateModel(TableModel(self.curList))
-            self.spellcontainer.sortTable(self.spellsort, False)
             self.spellcontainer.redraw()
             self.spellcontainer.autoResizeColumns()
 
